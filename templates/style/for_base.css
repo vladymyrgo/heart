@@ -1,0 +1,23 @@
+body {
+    background-color: #8dc73c;
+    margin-top: 0px;
+}
+
+#panda_jpg {
+    margin: 0 auto;
+    width: 267px;
+}
+
+#green {
+    background-color: #509a27;
+    height: 216px;
+}
+
+#div_form {
+    margin: 120px auto 10px auto;
+    width: 400px;
+}
+
+#input {
+    width: 400px;
+}

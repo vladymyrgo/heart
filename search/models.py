@@ -42,5 +42,6 @@ class Links(models.Model):
     sum_units = models.IntegerField()
     sum_cities = models.IntegerField()
     sum_percent = models.IntegerField()
+    add_time = models.IntegerField()
     class Meta:
         db_table = 'links'
