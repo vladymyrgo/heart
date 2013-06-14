@@ -1,9 +1,31 @@
 <html>
     <head>
-        <title>Pandask</title>
-        <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}style/for_base.css" />
+        <title>Heart</title>
+        {% load staticfiles %}
+        <link rel="stylesheet" type="text/css" href="{% static "style/for_base.css" %}" />
+        <script type="text/javascript" src="{% static "js/jquery-1.10.1.min.js" %}"></script>
+        
+        <script type="text/javascript">
+            $(function () {
+                $("#heart_form").submit(function(e) {
+                    e.preventDefault();
+                    var data = $("#input").val()
+                    $.get("/result/",{q:data}, function(data) {
+                        alert(data);
+                    });
+                });
+            });
+        </script>
+        
     </head>
     <body>
+        <div id="div_form">
+            <form id="heart_form">
+            <input type="text" id="input">
+            <!--<input type="submit" value="search">-->
+            </form>
+        </div>
+        
         {% block body %}{% endblock %}
     </body>
 </html>

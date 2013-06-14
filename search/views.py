@@ -1,7 +1,6 @@
 # coding:utf-8
 import urllib
 from django.shortcuts import render_to_response, HttpResponse
-from django.template import RequestContext #to make CSS work
 from authorityengine.heart import *
 from search.models import Cities, HtmlTest
 
@@ -37,7 +36,7 @@ def auth_dic():
     for i in dic: out+=str(i)+':';out+=str(dic[i])+'\n'
     return out
 
-def start():
+def heart():
     s = AuthoritativeResult('мужские черты')
     l = s.gradation_authority()
   #  out=''
@@ -48,6 +47,14 @@ def start():
   #          ch += d + ':' + str(fi[d])
   #      out += i[0] + '**scores:' + str(i[1][0]) + ch + '***'
     return str(l)
+
+def ajax_test(request):
+    q = request.GET.get('q')
+    m = 'my get is ' + q
+    return HttpResponse(m)
+
+def start(request):
+    return render_to_response('base.html')
 
 def test(request):
     f=start()
