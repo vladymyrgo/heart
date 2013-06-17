@@ -4,28 +4,30 @@
         {% load staticfiles %}
         <link rel="stylesheet" type="text/css" href="{% static "style/for_base.css" %}" />
         <script type="text/javascript" src="{% static "js/jquery-1.10.1.min.js" %}"></script>
+        <script type="text/javascript" src="{% static "js/jquery-ui-1.10.3/ui/jquery-ui.js" %}"></script>
         
         <script type="text/javascript">
             $(function () {
-                $("#heart_form").submit(function(e) {
-                    e.preventDefault();
-                    var data = $("#input").val()
+                $("#heart_form").submit(function(f) {
+                    f.preventDefault();
+                    var data = $("#input").val();
+                    $("#results").hide("drop", 1000);
                     $.get("/result/",{q:data}, function(data) {
-                        alert(data);
+                        $("#results").empty().append(data).show("drop", 1000);
                     });
+                    $(".divForm").addClass("divAfterSubmit", 1500);
                 });
             });
         </script>
         
     </head>
     <body>
-        <div id="div_form">
+        <div class="divForm">
             <form id="heart_form">
             <input type="text" id="input">
             <!--<input type="submit" value="search">-->
             </form>
         </div>
-        
-        {% block body %}{% endblock %}
+        <div id="results"></div>
     </body>
 </html>

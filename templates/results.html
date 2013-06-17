@@ -1,15 +1,10 @@
-{%extends "base.html"%}
-
-{%block body%}
-    
-    <div id="green">
-        <div id="panda_jpg">
-            <img src="{{ MEDIA_URL }}images/panda.jpg" />
-        </div>
-    </div>
-    
-    <div>
-        <p>{{results}}</p>
-    </div>
-
-{%endblock%}
+<ul>
+{% for link, scores, sum_words, sum_unique_words, sum_terms in list_d %}
+    <li>
+        <p>{{ link }}</p>
+        <p>scores: {{ scores }}, sum_words: {{ sum_words }},
+            sum_unique_words: {{ sum_unique_words }}, sum_terms: {{ sum_terms }}
+        </p>
+    </li>
+{% endfor %}
+</ul>

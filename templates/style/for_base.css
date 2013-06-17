@@ -1,23 +1,21 @@
 body {
-    background-color: #8dc73c;
+    background-color: #DEDEDE;
     margin-top: 0px;
 }
 
-#panda_jpg {
-    margin: 0 auto;
-    width: 267px;
+.divForm {
+    margin: 300px auto 10px auto;
+    width: 450px;
 }
 
-#green {
-    background-color: #509a27;
-    height: 216px;
-}
-
-#div_form {
-    margin: 120px auto 10px auto;
-    width: 400px;
+.divAfterSubmit {
+    margin: 50px auto 10px auto;
 }
 
 #input {
-    width: 400px;
+    width: 450px;
+}
+
+#results {
+    display: none;
 }

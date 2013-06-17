@@ -36,7 +36,7 @@ class LinksCollector(object):
         soup = BeautifulSoup(html)
         return True if soup.select(".sb_pagN") else False
     
-    def get_links(self, max_search_page=50, max_links=3):
+    def get_links(self, max_search_page=50, max_links=50):
         '''
             Самостоятельная функция.
             Возвращает список ссылок поиска на сайты.
@@ -292,19 +292,22 @@ class AuthoritativeResult(AuthorityCalculation):
     
     def set_place(self, dic):
         '''
-        Принимает словарь ссылка:баллы авторитетности
+        Принимает словарь {ссылка:(баллы авторитетности, характеристики)}
         Возвращает отсортированный список вида [('link',(scores,{характеристики})), (...],
         где первый элемент имеет найбольшее количество баллов и далее по убыванию.
         '''
         return sorted(dic.items(), key=lambda x:x[1][0], reverse=True)
     
-    def gradation_authority(self,):
+    def get_results(self, max_links=3):
         '''
         Самостоятельная функция.
-        Возвращает отсортированный списоквида [('link',(scores,{характеристики})), (...],
+        Может принимать ограничение по количеству возвращаемых результатов.
+        Возвращает отсортированный список вида:
+        [{'sum_units':, 'sum_cities':, 'sum_terms':, 'sum_words':, 'id':, 'link':,
+        'scores':, 'add_time':, 'sum_percent':, 'sum_names':, 'sum_unique_words':},{...],
         где первый элемент имеет найбольшее количество баллов и далее по убыванию.
         '''
-        all_links = self.get_links() # Собирает все ссылки по запросу
+        all_links = self.get_links(max_links=max_links) # Собирает все ссылки по запросу
         links_html_dic = self.links_html_dict(all_links) # Получает cловарь ссылок и html которых нет в БД
         for link in links_html_dic:
             char_dic = self.authoritative_characteristics(links_html_dic[link])
@@ -314,6 +317,12 @@ class AuthoritativeResult(AuthorityCalculation):
         for link in all_links:
             char_dic = self.get_characteristics_from_db(link)
             scores = self.total_authority_scores(char_dic) # Вычисляет по характеристикам авторитетность
+            # Добавляет в словарь характеристик 'scores'
+            char_dic.update({'scores':scores})
             link_score.update({link:(scores, char_dic)})
-        scores_list = self.set_place(link_score) # Получает отсортированный по баллам список
-        return scores_list
+        # Получает отсортированный по баллам список в таком виде:
+        #[('link',(scores,{характеристики})), (...]
+        scores_list = self.set_place(link_score)
+        #Генерирует писок из словарей с характеристиками
+        scores_dic_list = [d[1][1] for d in scores_list]
+        return scores_dic_list

@@ -36,26 +36,22 @@ def auth_dic():
     for i in dic: out+=str(i)+':';out+=str(dic[i])+'\n'
     return out
 
-def heart():
+def heart(request):
     s = AuthoritativeResult('мужские черты')
     l = s.gradation_authority()
-  #  out=''
-  #  for i in l:
-  #      fi = i[1][1]
-  #      ch=''
-  #      for d in fi:
-  #          ch += d + ':' + str(fi[d])
-  #      out += i[0] + '**scores:' + str(i[1][0]) + ch + '***'
-    return str(l)
+    return HttpResponse(str(l))
 
-def ajax_test(request):
+def results(request):
     q = request.GET.get('q')
-    m = 'my get is ' + q
-    return HttpResponse(m)
+    #s = AuthoritativeResult(q)
+    #res = s.get_results()
+    res = [{'sum_units': 0, 'sum_cities': 4, 'sum_terms': 19, 'sum_words': 656, 'id': 1L, 'link': u'http://www.kleo.ru/items/planetarium/kristina_orbakajte_muzhskie_ch.shtml', 'scores': 68, 'add_time': 1370962961L, 'sum_percent': 0, 'sum_names': 45, 'sum_unique_words': 470}, {'sum_units': 0, 'sum_cities': 0, 'sum_terms': 0, 'sum_words': 0, 'id': 2L, 'link': u'http://www.genon.ru/GetAnswer.aspx?qid=58c91b6e-701a-4ebb-80a6-2d9a54384d8b', 'scores': 0, 'add_time': 1371024424L, 'sum_percent': 0, 'sum_names': 0, 'sum_unique_words': 0}, {'sum_units': 0, 'sum_cities': 0, 'sum_terms': 0, 'sum_words': 0, 'id': 3L, 'link': u'http://www.ardor.ru/seducer/mood/1_07/', 'scores': 0, 'add_time': 1371024424L, 'sum_percent': 0, 'sum_names': 0, 'sum_unique_words': 0}]
+
+    l = [(d['link'], d['scores'], d['sum_words'], d['sum_unique_words'], d['sum_terms']) for d in res]
+    return render_to_response('results.html', {'list_d':l})
 
 def start(request):
     return render_to_response('base.html')
 
-def test(request):
-    f=start()
-    return HttpResponse(f)
+
+
