@@ -1,4 +1,5 @@
-# coding:utf-8
+# -*- coding: utf-8 -*-
+
 import urllib
 import time
 from bs4 import BeautifulSoup
@@ -10,51 +11,64 @@ class LinksCollector(object):
         self.user_request = user_request
         
     def search_html(self, page):
+        '''html of bing.com with results
+            
+            Attribute:
+                page - Number of results page
+            
+            return html string
         '''
-            Принимает номер страницы для поиска и возвращает html поиска.
-        '''
-        bing='http://www.bing.com/search?'
+        bing = 'http://www.bing.com/search?'
         request = 'q=' + self.user_request
         first = '&first=' + str(((page-1)*10)+1)
+        
         search_url = bing + request + first
-        search_page = urllib.urlopen(search_url).read()
+        search_page = urllib.urlopen(search_url.encode('utf-8')).read()
         return search_page
     
     def links_scanner(self, html):
-        '''
-            Принимает html поиска и возвращает список ссылок с этой страницы.
+        '''Colects links from search html
+            
+            Attribute:
+                html - Html of search
+            
+            return list of links from html
         '''
         soup = BeautifulSoup(html)
         links = [a.a['href'] for a in soup.find_all('h3')]
         return links
     
     def is_next_button(self, html):
-        '''
-            Принимает html поиска и возвращает "True" если есть кнопка "Next".
-            Это нужно для определения последней страницы результатов поиска.
+        '''Checking for the "next" button
+            
+            Attribute:
+                html - Html of search
+            
+            return True if there is a button in html and False if there isn't
         '''
         soup = BeautifulSoup(html)
         return True if soup.select(".sb_pagN") else False
     
     def get_links(self, max_search_page=50, max_links=50):
+        '''Solo function to get links
+            
+            Attribute (not required):
+                max_links - limiting the number of returned links
+                max_search_page - limiting
+                                the number of search pages to be scanned
+            
+            return list of links
         '''
-            Самостоятельная функция.
-            Возвращает список ссылок поиска на сайты.
-            Может принимать ограничение 'max_page' по количеству сканируемых
-            страниц поиска и ограничение max_links по количеству возвращаемых
-            ссылок.
-        '''
-        all_links=[]
-        for p in range(1, max_search_page+1): # листаем станицы поиска
-            # открываем html поиска функцией search_html()
-            html = self.search_html(page=p)
-            #Если есть кнопка 'Next', и не срабатывают ограничители
-            #то собираем ссылки и идем на след. стр.
+        all_links = []
+        for p in range(1, max_search_page+1): # Leafs through search pages
+            html = self.search_html(page=p) # Gets html
+            
+            # If there is the "next" button
+            # and page/numbers of links are in permissible range
             if (self.is_next_button(html=html) and p < max_search_page
-                and len(all_links) < max_links):
+                                        and len(all_links) < max_links):
                 all_links.extend(self.links_scanner(html))
-            else: #нет "next" или сработал ограничитель
-                #собираем ссылки и возвращаем результаты
+            else:
                 all_links.extend(self.links_scanner(html))
                 return all_links[:max_links]
 
@@ -62,20 +76,27 @@ class LinksCollector(object):
 class HTMLcollector(LinksCollector):
     
     def no_links_in_db(self,links):
+        '''Links which are not in the database
+            
+            Attribute:
+                links - links to check in db
+            
+            return list of links which are not in the database
         '''
-            Принимает список ссылок и проверяет их наличие в БД.
-            Возвращает список ссылок которых нет в БД.
-        '''
-        no_links=[]
+        no_links = []
         for link in links:
             try: Links.objects.get(link=link)
             except Links.DoesNotExist: no_links.append(link)
         return no_links
     
     def links_html_dict(self, all_links):
-        '''
-            Принимает список ссылок.
-            Возвращает словарь из ссылок(которых нет в БД) и их html-ей.
+        '''Links with html
+            
+            Attribute:
+                all_links - links to check in db and
+                                            if there isn't link
+                                            get its html
+            return dictionary like this {'link':'html',...}
         '''
         links = self.no_links_in_db(all_links)
         l = [[link, urllib.urlopen(link).read()] for link in links]
@@ -85,9 +106,27 @@ class HTMLcollector(LinksCollector):
 
 class CollectionCharacteristics(HTMLcollector):
     
+    def extract_title(self, html):
+        """Title
+            
+            Attribute:
+                html - html of the page
+            
+            return string with title
+        """
+        try:
+            soup = BeautifulSoup(html)
+            title = soup.html.head.title.string
+        except: title="Error"
+        return title
+    
     def extract_text(self, html):
-        '''
-            Принимает html и возвращает текст страницы.
+        '''Get text from html
+            
+            Attribute:
+                html - html of the page
+            
+            return text from html
         '''
         try:
             soup = BeautifulSoup(html)
@@ -99,12 +138,16 @@ class CollectionCharacteristics(HTMLcollector):
         return text
     
     def vocabulary(self, text):
+        '''Words and the number of repeats
+            
+            Attribute:
+                text - the text to be scanned
+            
+            return dictionary like this {'someword1':12,'someword2':3}
         '''
-            Принимает текст.
-            Возвращает словарь из слов и количества их повторений.
-        '''
-        words={}
+        words = {}
         garb = '\t\n\x0b\x0c\r !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"\''
+        
         for word in text.lower().split():
             word = word.strip(garb)
             #if len(word) > 2:
@@ -112,26 +155,36 @@ class CollectionCharacteristics(HTMLcollector):
         return words
     
     def percent(self, text):
-        '''
-            Принимает текст.
-            Возвращает словарь "percent":количество символов "%" в тексте.
+        '''Count percent in text
+            
+            Attribute:
+                text - the text to be scanned
+            
+            return dictionary like this {'percent':number}
         '''
         p = text.count('%')
         perc = {'sum_percent':p}
         return perc
     
     def sum_of_words(self, dic):
-        '''
-            Принимает словарь из слов и количества их повторений.
-            Возвращает словарь из "number_of_words": количество слов в статье.
+        '''The number of words
+            
+            Attribute:
+                dic - the dictionary of words and their repeats
+                        example: {'word1':12, 'word2':3}
+                
+            return dictionary like this {'number_of_words':number}
         '''
         n = {'sum_words':sum(dic.values())}
         return n
     
     def if_term(self, word):
-        '''
-            Принимает слово.
-            Возвращает 'True' если слово найдено в словаре терминов.
+        '''If the word is term
+            
+            Attribute:
+                word - the word to check
+            
+            return True if word is term else False
         '''
         try:
             Terms.objects.get(term=word)
@@ -140,9 +193,12 @@ class CollectionCharacteristics(HTMLcollector):
         except Terms.DoesNotExist: return False
     
     def if_name(self, word):
-        '''
-            Принимает слово.
-            Возвращает 'True' если слово найдено в словаре имен.
+        '''If the word is name
+            
+            Attribute:
+                word - the word to check
+            
+            return True if word is name else False
         '''
         try:
             Names.objects.get(name=word)
@@ -151,9 +207,12 @@ class CollectionCharacteristics(HTMLcollector):
         except Names.DoesNotExist: return False
     
     def if_city(self, word):
-        '''
-            Принимает слово.
-            Возвращает 'True' если слово найдено в словаре городов.
+        '''If the word is city name
+            
+            Attribute:
+                word - the word to check
+            
+            return True if word is city name else False
         '''
         try:
             Cities.objects.get(city=word)
@@ -162,9 +221,12 @@ class CollectionCharacteristics(HTMLcollector):
         except Cities.DoesNotExist: return False
     
     def if_unit(self, word):
-        '''
-            Принимает слово.
-            Возвращает 'True' если слово найдено в словаре величин.
+        '''If the word is unit
+            
+            Attribute:
+                word - the word to check
+            
+            return True if word is unit else False
         '''
         try:
             Units.objects.get(unit=word)
@@ -174,69 +236,90 @@ class CollectionCharacteristics(HTMLcollector):
     
     def count_authoritative_words(self, dic):
         '''
-            Принимает словарь из слов и количества их повторений.
-            Возвращает словарь с количеством терминов, имен, городов, величин.
+            Attribute:
+                dic - the dictionary of words and their repeats
+                        example: {'someword1':12, 'someword2':3}
+            
+            return dictionary {
+                    'sum_terms':number,
+                    'sum_names':number,
+                    'sum_cities':number,
+                    'sum_units':number
+                    }
         '''
-        terms=0
-        names=0
-        cities=0
-        units=0
+        terms = 0
+        names = 0
+        units = 0
+        cities = 0
+        
         for word in dic:
-            if self.if_term(word) is True: terms += dic[word]
-            elif self.if_name(word) is True: names += dic[word]
-            elif self.if_city(word) is True: cities += dic[word]
-            elif self.if_unit(word) is True: units += dic[word]
+            if self.if_term(word): terms += dic[word]
+            elif self.if_name(word): names += dic[word]
+            elif self.if_city(word): cities += dic[word]
+            elif self.if_unit(word): units += dic[word]
+        
         auth_words = {
-                    'sum_terms':terms, 'sum_names':names,
-                    'sum_cities':cities, 'sum_units':units
+                    'sum_terms':terms,
+                    'sum_names':names,
+                    'sum_cities':cities,
+                    'sum_units':units
                     }
         return auth_words
     
     def authoritative_characteristics(self, html):
         '''
-            Принимает html сайта.
-            Возвращает словарь:характеристика, ее количество.
+            Attribute:
+                html - html of the page
+            
+            return dictionary {
+                                'sum_terms':number,
+                                'sum_names':number,
+                                'sum_cities':number,
+                                'sum_units':number,
+                                'number_of_words':number
+                                'sum_unique_words':number
+                                'percent':number
+                                'add_time':number
+                                }
         '''
-        charact={}
         text = self.extract_text(html)
         voc = self.vocabulary(text)
-        charact.update(self.count_authoritative_words(voc)) # Авторитетные слова
-        charact.update(self.percent(text))# Проценты
-        charact.update(self.sum_of_words(voc)) # Количество слов
-        charact.update({'sum_unique_words':len(voc)}) # Количество уникальных слов
-        charact.update({'add_time':int(time.time())}) # Время добавления в словарь (в БД)
+        
+        charact = {}
+        charact.update(self.count_authoritative_words(voc))
+        charact.update(self.percent(text))
+        charact.update(self.sum_of_words(voc))
+        charact.update({'sum_unique_words':len(voc)})
+        charact.update({'add_time':int(time.time())})
+        #charact.update({'title':self.extract_title(html)})
         return charact
     
     def save_characteristics_to_db(self, link, dic):
+        '''Function saves the link and its characteristics to db
+            
+            Attribute:
+                link - the link to save in db
+                dic - dictionary with characteristics of the link
         '''
-            Принимает ссылку и словарь с ее характеристиками.
-            Записывает принятые данные в БД
-        '''
-        add_time = dic['add_time']
-        sum_words = dic['sum_words']
-        sum_terms = dic['sum_terms']
-        sum_names = dic['sum_names']
-        sum_units = dic['sum_units']
-        sum_cities = dic['sum_cities']
-        sum_percent = dic['sum_percent']
-        sum_unique_words = dic['sum_unique_words']
         p = Links(
-            link=link,
-            sum_words=sum_words,
-            sum_unique_words=sum_unique_words,
-            sum_terms=sum_terms,
-            sum_names=sum_names,
-            sum_units=sum_units,
-            sum_cities=sum_cities,
-            sum_percent=sum_percent,
-            add_time=add_time
-        )
+            link = link,
+            add_time = dic['add_time'],
+            sum_words = dic['sum_words'],
+            sum_terms = dic['sum_terms'],
+            sum_names = dic['sum_names'],
+            sum_units = dic['sum_units'],
+            sum_cities = dic['sum_cities'],
+            sum_percent = dic['sum_percent'],
+            sum_unique_words = dic['sum_unique_words'],
+            )
         p.save()
     
     def get_characteristics_from_db(self, link):
         '''
-            Принимает ссылку.
-            Возвращает словарь характеристик ссылки из БД.
+            Attribute:
+                link - the link to get its characteristics from db
+            
+            return dictionary of characteristics from db
         '''
         return Links.objects.values().get(link=link)
 
@@ -244,85 +327,116 @@ class CollectionCharacteristics(HTMLcollector):
 class AuthorityCalculation(CollectionCharacteristics):
     
     def scores_imp_char(self, dic):
-        '''
-            Принимает словарь характеристик.
-            Данные необходимые в словаре:
-            "sum_terms, sum_names, sum_units, sum_cities, sum_percent".
-            Начисляет баллы за важные характеристики сайта.
-            Возвращает число набранных баллов.
+        '''Scores for important characteristics
+            
+            Attribute:
+                dic - the dictionary with characteristics
+                    required data in dictionary:
+                    "sum_terms, sum_names, sum_units, sum_cities, sum_percent"
+            
+            return integer of scores
         '''
         sum_terms = dic['sum_terms']
         sum_names = dic['sum_names']
         sum_units = dic['sum_units']
         sum_cities = dic['sum_cities']
         sum_percent = dic['sum_percent']
+        
         scores = sum_terms + sum_names + sum_units + sum_cities + sum_percent
         return scores
     
     def scores_average_char(self,dic):
-        '''
-            Принимает словарь характеристик.
-            Данные необходимые в словаре:
-            "sum_words, sum_unique_words"
-            Начисляет баллы за "средние" показатели.
-            Возвращает число набранных баллов.
+        '''Scores for average characteristics
+            
+            Attribute:
+                dic - the dictionary with characteristics
+                    required data in dictionary: "sum_words, sum_unique_words"
+            
+            return integer of scores
         '''
         sum_words = dic['sum_words']
         sum_unique_words = dic['sum_unique_words']
         concentration = float(sum_words) / float(sum_unique_words)
-        scores = concentration # + надо подумать...
+        
+        scores = concentration
         return scores
     
     def total_authority_scores(self, dic):
-        '''
-            Принимает словарь с характеристиками сайта.
-            Обьединяет все функции по вычислению баллов авторитета.
-            Данные необходимые в словаре:
-                "sum_terms, sum_names, sum_units, sum_cities, sum_percent,
-                sum_words, sum_unique_words"
-            Возвращает число баллов.
+        '''Total sum of scores
+            
+            Attribute:
+                dic - the dictionary with characteristics
+                    required data in dictionary:
+                        "sum_terms, sum_names, sum_units, sum_cities,
+                        sum_percent, sum_words, sum_unique_words"
+            
+            return integer of scores
         '''
         imp_scores = self.scores_imp_char(dic)
         #avr_scores = self.scores_avr_char(dic)
-        total_scores = imp_scores
+        
+        total_scores = imp_scores #+ avr_scores
         return total_scores
 
 
-class AuthoritativeResult(AuthorityCalculation):
+class AuthoritativeResults(AuthorityCalculation):
     
     def set_place(self, dic):
         '''
-        Принимает словарь {ссылка:(баллы авторитетности, характеристики)}
-        Возвращает отсортированный список вида [('link',(scores,{характеристики})), (...],
-        где первый элемент имеет найбольшее количество баллов и далее по убыванию.
+            Attribute:
+                dic - the dictionary like this {link:(scores, characteristics)}
+            
+            return list like this [(link,(scores,{characteristics})), (...]
+                            where the first element has the highest scores
+                                                        and then descending
         '''
         return sorted(dic.items(), key=lambda x:x[1][0], reverse=True)
     
-    def get_results(self, max_links=3):
+    def get_results(self, max_links=50):
+        '''Solo function to get links with data which sorted by scores
+            
+            Attribute (not required):
+                max_links - limiting the number of returned links
+            
+            return list like this
+                    [
+                    {'link':, 'sum_units':, 'sum_cities':, 'sum_terms':,
+                    'sum_words':, 'id':, 'scores':, 'add_time':,
+                    'sum_percent':, 'sum_names':, 'sum_unique_words':},
+                    {...
+                    ]
+                    where the first element has the highest scores
+                                                        and then descending
         '''
-        Самостоятельная функция.
-        Может принимать ограничение по количеству возвращаемых результатов.
-        Возвращает отсортированный список вида:
-        [{'sum_units':, 'sum_cities':, 'sum_terms':, 'sum_words':, 'id':, 'link':,
-        'scores':, 'add_time':, 'sum_percent':, 'sum_names':, 'sum_unique_words':},{...],
-        где первый элемент имеет найбольшее количество баллов и далее по убыванию.
-        '''
-        all_links = self.get_links(max_links=max_links) # Собирает все ссылки по запросу
-        links_html_dic = self.links_html_dict(all_links) # Получает cловарь ссылок и html которых нет в БД
+        # Collect all links on request
+        all_links = self.get_links(max_links=max_links)
+        
+        # Get a dictionary of references and html that are not in the database
+        links_html_dic = self.links_html_dict(all_links)
+        
         for link in links_html_dic:
+            # Get characteristics
             char_dic = self.authoritative_characteristics(links_html_dic[link])
-            self.save_characteristics_to_db(link=link, dic=char_dic) # Сохраняет характеристики ссылок в БД
-        # Собирает из БД все ссылки с характеристиками
-        link_score={}
+            
+            # Save characteristics to database
+            self.save_characteristics_to_db(link=link, dic=char_dic)
+        
+        # Get all links with characteristics from database
+        link_score = {}
+        
         for link in all_links:
             char_dic = self.get_characteristics_from_db(link)
-            scores = self.total_authority_scores(char_dic) # Вычисляет по характеристикам авторитетность
-            # Добавляет в словарь характеристик 'scores'
+            
+            # Gives scores by characteristics
+            scores = self.total_authority_scores(char_dic)
+            
+            # Adds 'scores' to the dictionary of characteristics
             char_dic.update({'scores':scores})
             link_score.update({link:(scores, char_dic)})
-        # Получает отсортированный по баллам список в таком виде:
-        #[('link',(scores,{характеристики})), (...]
+        
+        # Gets the list sorted by scores
         scores_list = self.set_place(link_score)
-        #Генерирует писок из словарей с характеристиками
+        
+        # Generates the list of dictionaries with characteristics
         scores_dic_list = [d[1][1] for d in scores_list]
         return scores_dic_list

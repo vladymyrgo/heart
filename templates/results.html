@@ -1,10 +1,13 @@
-<ul>
-{% for link, scores, sum_words, sum_unique_words, sum_terms in list_d %}
-    <li>
-        <p>{{ link }}</p>
-        <p>scores: {{ scores }}, sum_words: {{ sum_words }},
-            sum_unique_words: {{ sum_unique_words }}, sum_terms: {{ sum_terms }}
-        </p>
-    </li>
-{% endfor %}
+<ul class="ulResults">
+    {% for link, scores, sum_words, sum_unique_words, sum_terms in list_d %}
+        <li class="liResults">
+            <h3 class="hResults"><a href="{{ link }}" target="_blank">{{ link }}</a></h3>
+            <p class="pResults">
+                <span class="charKey">scores: </span><span class="charValue">{{ scores }}</span>,
+                <span class="charKey">sum words: </span><span class="charValue">{{ sum_words }}</span>,
+                <span class="charKey">sum unique words: </span><span class="charValue">{{ sum_unique_words }}</span>,
+                <span class="charKey">sum terms: </span><span class="charValue">{{ sum_terms }}</span>
+            </p>
+        </li>
+    {% endfor %}
 </ul>

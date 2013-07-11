@@ -1,21 +1,27 @@
-<html>
+<!DOCTYPE html>
+{% load staticfiles %}
+<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta name="description" content="Search is under construction"/>
         <title>Heart</title>
-        {% load staticfiles %}
         <link rel="stylesheet" type="text/css" href="{% static "style/for_base.css" %}" />
         <script type="text/javascript" src="{% static "js/jquery-1.10.1.min.js" %}"></script>
         <script type="text/javascript" src="{% static "js/jquery-ui-1.10.3/ui/jquery-ui.js" %}"></script>
         
         <script type="text/javascript">
             $(function () {
+                $("#load_gif").hide()
                 $("#heart_form").submit(function(f) {
                     f.preventDefault();
-                    var data = $("#input").val();
-                    $("#results").hide("drop", 1000);
-                    $.get("/result/",{q:data}, function(data) {
-                        $("#results").empty().append(data).show("drop", 1000);
+                    $("#load_gif").show()
+                    var uq = $("#input").val();
+                    $.get("/result/", {q:uq}, function(data) {
+                        $("#load_gif").hide()
+                        $("#results").empty().append(data).show("drop", 700);
                     });
-                    $(".divForm").addClass("divAfterSubmit", 1500);
+                    $("#results").hide("drop", 700).addClass("resultsAfterSubmit", 700);
+                    $(".divForm").addClass("divFormAfterSubmit", 700);
                 });
             });
         </script>
@@ -24,10 +30,11 @@
     <body>
         <div class="divForm">
             <form id="heart_form">
-            <input type="text" id="input">
+            <input type="text" id="input" autofocus>
             <!--<input type="submit" value="search">-->
             </form>
         </div>
         <div id="results"></div>
+        <div id="loader"><img id="load_gif" height="300" src="{% static "images/loader.gif" %}" /></div>
     </body>
 </html>

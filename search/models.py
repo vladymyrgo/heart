@@ -35,6 +35,7 @@ class Units(models.Model):
 class Links(models.Model):
     id = models.IntegerField(primary_key=True)
     link = models.CharField(max_length=255L, unique=True)
+    title = models.CharField(max_length=2000L)
     sum_words = models.IntegerField()
     sum_unique_words = models.IntegerField()
     sum_terms = models.IntegerField()

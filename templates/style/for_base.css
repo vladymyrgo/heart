@@ -1,21 +1,61 @@
 body {
-    background-color: #DEDEDE;
-    margin-top: 0px;
+    background: #E0E0E0 url(/static/images/bg.jpg) repeat-y;
+    background-position: center;
+}
+
+#loader {
+    margin: auto auto;
+    width: 170px;
 }
 
 .divForm {
-    margin: 300px auto 10px auto;
+    margin: 300px auto 20px auto;
     width: 450px;
 }
 
-.divAfterSubmit {
-    margin: 50px auto 10px auto;
+.divFormAfterSubmit {
+    margin: 20px auto 20px auto;
 }
 
 #input {
     width: 450px;
+    height: 30px;
+    font: 18px arial, sans-serif;
 }
 
 #results {
     display: none;
+    position: relative;
+}
+
+.resultsAfterSubmit {
+    margin: 20px auto 20px auto;
+    width: 800px;
+}
+
+.liResults {
+    list-style: none;
+}
+
+.hResults {
+    margin: 18px auto 3px auto;
+    color: color: #1240AB;
+}
+
+A:visited {
+    color: #009999;
+}
+
+.pResults {
+    margin: 0;
+}
+
+.charKey {
+    font-style: italic;
+    font-size: 13pt;
+}
+
+.charValue {
+    color: #1240AB;
+    font-size: 14pt;
 }
