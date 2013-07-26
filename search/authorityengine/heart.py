@@ -50,7 +50,7 @@ class LinksCollector(object):
         return True if soup.select(".sb_pagN") else False
     
     def get_links(self, max_search_page=50, max_links=50):
-        '''Solo function to get links
+        '''Function to get links
             ----------
             Attribute (not required):
                 max_links - limiting the number of returned links
@@ -380,7 +380,7 @@ class AuthoritativeResults(object):
         return sorted(dic.items(), key=lambda x:x[1][0], reverse=True)
     
     def get_results(self, max_links=50):
-        '''Solo function to get links with data which sorted by scores
+        '''Function to get links with data which sorted by scores
             ----------
             Attribute (not required):
                 max_links - limiting the number of returned links
@@ -405,8 +405,8 @@ class AuthoritativeResults(object):
         
         for link in links_html_dic:
             # Get characteristics
-            instance_CollectionCharacteristics = CollectionCharacteristics(links_html_dic[link])
-            char_dic = instance_CollectionCharacteristics.authoritative_characteristics()
+            instance_ColChar = CollectionCharacteristics(links_html_dic[link])
+            char_dic = instance_ColChar.authoritative_characteristics()
             
             # Save characteristics to database
             instance_WorkLinkDB = WorkLinkDB(link)
