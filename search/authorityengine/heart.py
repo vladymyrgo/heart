@@ -367,8 +367,7 @@ class AuthoritativeResults(object):
     def __init__(self, user_request):
         self.user_request = user_request
     
-    @staticmethod
-    def set_place(dic):
+    def set_place(self, dic):
         '''
             Attribute:
                 dic - the dictionary like this {link:(scores, characteristics)}
@@ -428,7 +427,7 @@ class AuthoritativeResults(object):
             link_score.update({link:(scores, char_dic)})
         
         # Gets the list sorted by scores
-        scores_list = AuthoritativeResults.set_place(link_score)
+        scores_list = self.set_place(link_score)
         
         # Generates the list of dictionaries with characteristics
         scores_dic_list = [d[1][1] for d in scores_list]
