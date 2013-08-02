@@ -1,12 +1,15 @@
 from django.conf.urls import patterns, include, url
+from django.views.generic import TemplateView
+from search.views import Main
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
 
 urlpatterns = patterns('',
-                       url(r'^$', 'search.views.start',),
-                       url(r'^result/$', 'search.views.results',),
+                       (r'^$', TemplateView.as_view(template_name="base.html")),
+                       (r'^result/$', Main.as_view()),
+
     # Examples:
     # url(r'^$', 'heart.views.home', name='home'),
     # url(r'^heart/', include('heart.foo.urls')),
