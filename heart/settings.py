@@ -114,8 +114,6 @@ TEMPLATE_DIRS = ('/Volumes/HD/Documents/www/myproject/heart/templates',
     # Don't forget to use absolute paths, not relative paths.
 )
 
-INTERNAL_IPS = ('127.0.0.1',) # for django-debug-toolbar
-
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -130,6 +128,12 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
+
+# for django-debug-toolbar
+INTERNAL_IPS = ('127.0.0.1',)
+DEBUG_TOOLBAR_CONFIG = {
+    'HIDE_DJANGO_SQL': False,
+}
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
