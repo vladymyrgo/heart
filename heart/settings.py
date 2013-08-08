@@ -94,7 +94,9 @@ TEMPLATE_LOADERS = (
 
 MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -131,9 +133,20 @@ INSTALLED_APPS = (
 
 # for django-debug-toolbar
 INTERNAL_IPS = ('127.0.0.1',)
+
 DEBUG_TOOLBAR_CONFIG = {
-    'HIDE_DJANGO_SQL': False,
+    'HIDE_DJANGO_SQL': True,
 }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+    }
+}
+
+CACHE_MIDDLEWARE_SECONDS = 86400
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
