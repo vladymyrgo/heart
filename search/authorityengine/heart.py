@@ -3,20 +3,26 @@
 import urllib
 import time
 from bs4 import BeautifulSoup
+import redis
 from ..models import Terms, Names, Cities, Units, Links
 
 class LinksCollector(object):
+    '''Class working with search to get links.
+        ----------
+        Attribute:
+                user_request (str) - request for search system
+    '''
     
     def __init__(self, user_request):
         self.user_request = user_request
-        
+    
     def search_html(self, page):
-        '''html of bing.com with results
+        '''html of bing.com with results.
             ----------
             Attribute:
-                page - Number of results page
+                page (int) - Number of results page
             ----------
-            return html string
+            return html (str)
         '''
         bing = 'http://www.bing.com/search?'
         request = 'q=' + self.user_request
@@ -27,10 +33,10 @@ class LinksCollector(object):
         return search_page
     
     def links_scanner(self, html):
-        '''Colects links from search html
+        '''Colects links from search html.
             ----------
             Attribute:
-                html - Html of search
+                html (str) - Html of search
             ----------
             return list of links from html
         '''
@@ -39,10 +45,10 @@ class LinksCollector(object):
         return links
     
     def is_next_button(self, html):
-        '''Checking for the "next" button
+        '''Checking for the "next" button.
             ----------
             Attribute:
-                html - Html of search
+                html (str) - Html of search
             ----------
             return True if there is a button in html and False if there isn't
         '''
@@ -50,11 +56,11 @@ class LinksCollector(object):
         return True if soup.select(".sb_pagN") else False
     
     def get_links(self, max_search_page=50, max_links=50):
-        '''Function to get links
+        '''Function to get links.
             ----------
             Attribute (not required):
-                max_links - limiting the number of returned links
-                max_search_page - limiting
+                max_links (int) - limiting the number of returned links
+                max_search_page (int) - limiting
                                 the number of search pages to be scanned
             ----------
             return list of links
@@ -74,12 +80,17 @@ class LinksCollector(object):
 
 
 class HTMLcollector(object):
+    '''Class collecting html of sites.
+        ----------
+        Attribute:
+                all_links (list) - links to get them html
+    '''
     
     def __init__(self, all_links):
         self.all_links = all_links
     
     def no_links_in_db(self):
-        '''Links which are not in the database
+        '''Links which are not in the database.
             ----------
             return list of links which are not in the database
         '''
@@ -90,7 +101,7 @@ class HTMLcollector(object):
         return no_links
     
     def links_html_dict(self):
-        '''Links with html
+        '''Links with html.
             ----------
             return dictionary like this {'link':'html',...}
         '''
@@ -100,82 +111,15 @@ class HTMLcollector(object):
         return l
 
 
-class CollectionCharacteristics(object):
-    
-    def __init__(self, html):
-        self.html = html
-    
-    def extract_title(self):
-        """Title
-            ----------
-            return string with title
-        """
-        try:
-            soup = BeautifulSoup(self.html)
-            title = soup.html.head.title.string
-        except: title="Error"
-        return title
-    
-    def extract_text(self):
-        '''Get text from html
-            ----------
-            return text from html
-        '''
-        try:
-            soup = BeautifulSoup(self.html)
-            for_del = soup("style")
-            for_del.extend(soup("script"))
-            [tag.decompose() for tag in for_del]
-            text = soup.get_text()
-        except: text=''
-        return text
-    
-    def vocabulary(self, text):
-        '''Words and the number of repeats
-            ----------
-            Attribute:
-                text - the text to be scanned
-            ----------
-            return dictionary like this {'someword1':12,'someword2':3}
-        '''
-        words = {}
-        garb = '\t\n\x0b\x0c\r !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"\''
-        
-        for word in text.lower().split():
-            word = word.strip(garb)
-            #if len(word) > 2:
-            words[word] = words.get(word, 0) + 1
-        return words
-    
-    def percent(self, text):
-        '''Count percent in text
-            ----------
-            Attribute:
-                text - the text to be scanned
-            ----------
-            return dictionary like this {'percent':number}
-        '''
-        p = text.count('%')
-        perc = {'sum_percent':p}
-        return perc
-    
-    def sum_of_words(self, dic):
-        '''The number of words
-            ----------
-            Attribute:
-                dic - the dictionary of words and their repeats
-                        example: {'word1':12, 'word2':3}
-            ----------
-            return dictionary like this {'number_of_words':number}
-        '''
-        n = {'sum_words':sum(dic.values())}
-        return n
+class CheckWordInMySQL(object):
+    '''Class checking if word is in authoritative lists (MySQL).
+    '''
     
     def if_term(self, word):
-        '''If the word is term
+        '''If the word is term.
             ----------
             Attribute:
-                word - the word to check
+                word (str) - the word to check
             ----------
             return True if word is term else False
         '''
@@ -186,10 +130,10 @@ class CollectionCharacteristics(object):
         except Terms.DoesNotExist: return False
     
     def if_name(self, word):
-        '''If the word is name
+        '''If the word is name.
             ----------
             Attribute:
-                word - the word to check
+                word (str) - the word to check
             ----------
             return True if word is name else False
         '''
@@ -200,10 +144,10 @@ class CollectionCharacteristics(object):
         except Names.DoesNotExist: return False
     
     def if_city(self, word):
-        '''If the word is city name
+        '''If the word is city name.
             ----------
             Attribute:
-                word - the word to check
+                word (str) - the word to check
             ----------
             return True if word is city name else False
         '''
@@ -214,10 +158,10 @@ class CollectionCharacteristics(object):
         except Cities.DoesNotExist: return False
     
     def if_unit(self, word):
-        '''If the word is unit
+        '''If the word is unit.
             ----------
             Attribute:
-                word - the word to check
+                word (str) - the word to check
             ----------
             return True if word is unit else False
         '''
@@ -227,10 +171,10 @@ class CollectionCharacteristics(object):
         except Units.MultipleObjectsReturned: return True
         except Units.DoesNotExist: return False
     
-    def count_authoritative_words(self, dic):
+    def words_with_types_mysql(self, dic):
         '''
             Attribute:
-                dic - the dictionary of words and their repeats
+                dic (dict) - the dictionary of words and their repeats
                         example: {'someword1':12, 'someword2':3}
             ----------
             return dictionary {
@@ -258,9 +202,126 @@ class CollectionCharacteristics(object):
                     'sum_units':units
                     }
         return auth_words
+
+
+class CheckWordInRedis(object):
+    '''Class checking if word is in authoritative list (Redis).
+    '''
+    
+    def words_with_types_redis(self, dic):
+        '''
+            Attribute:
+                dic (dict) - the dictionary of words and their repeats
+                        example: {'someword1':12, 'someword2':3}
+            ----------
+            return dictionary {
+                    'sum_terms':number,
+                    'sum_names':number,
+                    'sum_cities':number,
+                    'sum_units':number
+                    }
+        '''
+        r = redis.StrictRedis(host='localhost', port=6379, db=1)
+        
+        terms = 0
+        names = 0
+        units = 0
+        cities = 0
+        
+        for word in dic:
+            word_type = r.hget(word,'type')
+            if word_type == 'term': terms += dic[word]
+            elif word_type == 'name': names += dic[word]
+            elif word_type == 'unit': units += dic[word]
+            elif word_type == 'city': cities += dic[word]
+        
+        auth_words = {
+                    'sum_terms':terms,
+                    'sum_names':names,
+                    'sum_cities':cities,
+                    'sum_units':units
+                    }
+        return auth_words
+
+
+class CollectionCharacteristics(CheckWordInRedis, CheckWordInMySQL):
+    '''Class that collecting characteristics of html.
+        ----------
+        Attribute:
+                html (str) - html to get its characteristics
+    '''
+    
+    def __init__(self, html):
+        self.html = html
+    
+    def extract_title(self):
+        """ Get Title.
+            ----------
+            return (str) title
+        """
+        try:
+            soup = BeautifulSoup(self.html)
+            title = soup.html.head.title.string
+        except: title="Error"
+        return title
+    
+    def extract_text(self):
+        '''Get text from html.
+            ----------
+            return (str) text from html
+        '''
+        try:
+            soup = BeautifulSoup(self.html)
+            for_del = soup("style")
+            for_del.extend(soup("script"))
+            [tag.decompose() for tag in for_del]
+            text = soup.get_text()
+        except: text=''
+        return text
+    
+    def vocabulary(self, text):
+        '''Words and the number of repeats.
+            ----------
+            Attribute:
+                text (str) - the text to be scanned
+            ----------
+            return dictionary like this {'someword1':12,'someword2':3}
+        '''
+        words = {}
+        garb = '\t\n\x0b\x0c\r !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"\''
+        
+        for word in text.lower().split():
+            word = word.strip(garb)
+            #if len(word) > 2:
+            words[word] = words.get(word, 0) + 1
+        return words
+    
+    def percent(self, text):
+        '''Count percent in text.
+            ----------
+            Attribute:
+                text (str) - the text to be scanned
+            ----------
+            return dictionary like this {'percent':number}
+        '''
+        p = text.count('%')
+        perc = {'sum_percent':p}
+        return perc
+    
+    def sum_of_words(self, dic):
+        '''The number of words.
+            ----------
+            Attribute:
+                dic (dict) - the dictionary of words and their repeats
+                        example: {'word1':12, 'word2':3}
+            ----------
+            return dictionary like this {'number_of_words':number}
+        '''
+        n = {'sum_words':sum(dic.values())}
+        return n
     
     def authoritative_characteristics(self):
-        '''Authoritative Characteristics
+        '''Authoritative Characteristics.
             ----------
             return dictionary {
                                 'sum_terms':number,
@@ -277,7 +338,7 @@ class CollectionCharacteristics(object):
         voc = self.vocabulary(text)
         
         charact = {}
-        charact.update(self.count_authoritative_words(voc))
+        charact.update(self.words_with_types_redis(voc))
         charact.update(self.percent(text))
         charact.update(self.sum_of_words(voc))
         charact.update({'sum_unique_words':len(voc)})
@@ -287,15 +348,20 @@ class CollectionCharacteristics(object):
 
 
 class WorkLinkDB(object):
+    '''Class to save and get characteristics from DB.
+        ----------
+        Attribute:
+            link (str) - link to save or get characteristics from DB
+    '''
     
     def __init__(self, link):
         self.link = link
     
     def save_characteristics_to_db(self, dic):
-        '''Function saves the link and its characteristics to db
+        '''Function saves the link and its characteristics to db.
             ----------
             Attribute:
-                dic - dictionary with characteristics of the link
+                dic (dict) - dictionary with characteristics of the link
         '''
         p = Links(
             link = self.link,
@@ -318,12 +384,17 @@ class WorkLinkDB(object):
 
 
 class AuthorityCalculation(object):
+    '''Class calculates authority scores.
+        ----------
+        Attribute:
+            dic (dict) - dictionary of characteristics
+    '''
     
     def __init__(self, dic):
         self.dic = dic
     
     def scores_imp_char(self):
-        '''Scores for important characteristics
+        '''Scores for important characteristics.
             ----------
             return integer of scores
         '''
@@ -338,7 +409,7 @@ class AuthorityCalculation(object):
         return scores
     
     def scores_average_char(self):
-        '''Scores for average characteristics
+        '''Scores for average characteristics.
             ----------
             return integer of scores
         '''
@@ -350,7 +421,7 @@ class AuthorityCalculation(object):
         return scores
     
     def total_authority_scores(self):
-        '''Total sum of scores
+        '''Total sum of scores.
             ----------
             return integer of scores
         '''
@@ -363,6 +434,11 @@ class AuthorityCalculation(object):
 
 
 class AuthoritativeResults(object):
+    '''Class gives search results.
+        ----------
+        Attribute:
+            user_request (str) - request for searching
+    '''
     
     def __init__(self, user_request):
         self.user_request = user_request
@@ -370,7 +446,7 @@ class AuthoritativeResults(object):
     def set_place(self, dic):
         '''
             Attribute:
-                dic - the dictionary like this {link:(scores, characteristics)}
+                dic (dict) - the dictionary like this {link:(scores, characteristics)}
             ----------
             return list like this [(link,(scores,{characteristics})), (...]
                             where the first element has the highest scores
@@ -382,7 +458,7 @@ class AuthoritativeResults(object):
         '''Function to get links with data which sorted by scores
             ----------
             Attribute (not required):
-                max_links - limiting the number of returned links
+                max_links (int) - limiting the number of returned links
             ----------
             return list like this
                     [

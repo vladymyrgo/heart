@@ -10,7 +10,7 @@ class Main(View):
     def get(self, request, *args, **kwargs):
         q = request.GET.get('q')
         s = AuthoritativeResults(q)
-        res = s.get_results(max_links=10)
+        res = s.get_results(max_links=2)
         
         l = [
             (d['link'], d['scores'], d['sum_words'],
