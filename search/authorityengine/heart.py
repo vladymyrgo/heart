@@ -113,7 +113,14 @@ class HTMLcollector(object):
 
 class CheckWordInMySQL(object):
     '''Class checking if word is in authoritative lists (MySQL).
+        ----------
+        Attribute:
+            dic (dict) - the dictionary of words and their repeats
+                        example: {'someword1':12, 'someword2':3}
     '''
+    
+    def __init__(self, dic):
+        self.dic = dic
     
     def if_term(self, word):
         '''If the word is term.
@@ -171,12 +178,8 @@ class CheckWordInMySQL(object):
         except Units.MultipleObjectsReturned: return True
         except Units.DoesNotExist: return False
     
-    def words_with_types_mysql(self, dic):
+    def words_type_repeats(self):
         '''
-            Attribute:
-                dic (dict) - the dictionary of words and their repeats
-                        example: {'someword1':12, 'someword2':3}
-            ----------
             return dictionary {
                     'sum_terms':number,
                     'sum_names':number,
@@ -189,11 +192,11 @@ class CheckWordInMySQL(object):
         units = 0
         cities = 0
         
-        for word in dic:
-            if self.if_term(word): terms += dic[word]
-            elif self.if_name(word): names += dic[word]
-            elif self.if_city(word): cities += dic[word]
-            elif self.if_unit(word): units += dic[word]
+        for word in self.dic:
+            if self.if_term(word): terms += self.dic[word]
+            elif self.if_name(word): names += self.dic[word]
+            elif self.if_city(word): cities += self.dic[word]
+            elif self.if_unit(word): units += self.dic[word]
         
         auth_words = {
                     'sum_terms':terms,
@@ -206,14 +209,17 @@ class CheckWordInMySQL(object):
 
 class CheckWordInRedis(object):
     '''Class checking if word is in authoritative list (Redis).
+        ----------
+        Attribute:
+            dic (dict) - the dictionary of words and their repeats
+                        example: {'someword1':12, 'someword2':3}
     '''
     
-    def words_with_types_redis(self, dic):
+    def __init__(self, dic):
+        self.dic = dic
+    
+    def words_type_repeats(self):
         '''
-            Attribute:
-                dic (dict) - the dictionary of words and their repeats
-                        example: {'someword1':12, 'someword2':3}
-            ----------
             return dictionary {
                     'sum_terms':number,
                     'sum_names':number,
@@ -228,12 +234,12 @@ class CheckWordInRedis(object):
         units = 0
         cities = 0
         
-        for word in dic:
+        for word in self.dic:
             word_type = r.hget(word,'type')
-            if word_type == 'term': terms += dic[word]
-            elif word_type == 'name': names += dic[word]
-            elif word_type == 'unit': units += dic[word]
-            elif word_type == 'city': cities += dic[word]
+            if word_type == 'term': terms += self.dic[word]
+            elif word_type == 'name': names += self.dic[word]
+            elif word_type == 'unit': units += self.dic[word]
+            elif word_type == 'city': cities += self.dic[word]
         
         auth_words = {
                     'sum_terms':terms,
@@ -244,7 +250,7 @@ class CheckWordInRedis(object):
         return auth_words
 
 
-class CollectionCharacteristics(CheckWordInRedis, CheckWordInMySQL):
+class CollectionCharacteristics(object):
     '''Class that collecting characteristics of html.
         ----------
         Attribute:
@@ -337,8 +343,10 @@ class CollectionCharacteristics(CheckWordInRedis, CheckWordInMySQL):
         text = self.extract_text()
         voc = self.vocabulary(text)
         
+        words_type = CheckWordInRedis(voc)
+        
         charact = {}
-        charact.update(self.words_with_types_redis(voc))
+        charact.update(words_type.words_type_repeats())
         charact.update(self.percent(text))
         charact.update(self.sum_of_words(voc))
         charact.update({'sum_unique_words':len(voc)})
@@ -455,7 +463,7 @@ class AuthoritativeResults(object):
         return sorted(dic.items(), key=lambda x:x[1][0], reverse=True)
     
     def get_results(self, max_links=50):
-        '''Function to get links with data which sorted by scores
+        '''Function to get links with data which sorted by scores.
             ----------
             Attribute (not required):
                 max_links (int) - limiting the number of returned links
