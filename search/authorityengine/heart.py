@@ -4,7 +4,7 @@ import urllib
 import time
 from bs4 import BeautifulSoup
 import redis
-from ..models import Terms, Names, Cities, Units, Links
+from ..models import Links #Terms, Names, Cities, Units
 
 class LinksCollector(object):
     '''Class working with search to get links.
@@ -55,7 +55,7 @@ class LinksCollector(object):
         soup = BeautifulSoup(html)
         return True if soup.select(".sb_pagN") else False
     
-    def get_links(self, max_search_page=50, max_links=50):
+    def get_links(self, max_search_page=50, max_links=2):
         '''Function to get links.
             ----------
             Attribute (not required):
@@ -462,7 +462,7 @@ class AuthoritativeResults(object):
         '''
         return sorted(dic.items(), key=lambda x:x[1][0], reverse=True)
     
-    def get_results(self, max_links=50):
+    def get_results(self, max_links=2):
         '''Function to get links with data which sorted by scores.
             ----------
             Attribute (not required):
