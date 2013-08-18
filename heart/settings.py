@@ -21,6 +21,8 @@ DATABASES = {
     }
 }
 
+REDIS_CONNECTION = "redis.StrictRedis(host='localhost', port=6379, db=1)"
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
@@ -96,9 +98,9 @@ MIDDLEWARE_CLASSES = (
     
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'middleware.timer.TotalTime',
-    'django.middleware.cache.UpdateCacheMiddleware',
+#    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+#    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

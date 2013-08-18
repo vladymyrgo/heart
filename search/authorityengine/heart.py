@@ -4,7 +4,8 @@ import urllib
 import time
 from bs4 import BeautifulSoup
 import redis
-from ..models import Links #Terms, Names, Cities, Units
+from django.conf import settings
+from ..models import Links, Terms, Names, Cities, Units
 
 class LinksCollector(object):
     '''Class working with search to get links.
@@ -227,7 +228,7 @@ class CheckWordInRedis(object):
                     'sum_units':number
                     }
         '''
-        r = redis.StrictRedis(host='localhost', port=6379, db=1)
+        r = eval(settings.REDIS_CONNECTION)
         
         terms = 0
         names = 0
