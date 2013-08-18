@@ -7,7 +7,11 @@ class TotalTime(object):
     def process_response(self, request, response):
         delta = """<ul class="ulResults">
         <li type="none">Response took %s seconds</li>
-        """ % str(time.time()-self.t)
+        """ % str(
+                round(
+                    time.time()-self.t,
+                    2)
+                )
         
         response.content = response.content.replace(
                     '<ul class="ulResults">', delta)

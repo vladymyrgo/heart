@@ -104,7 +104,7 @@ class HTMLcollector(object):
     def links_html_dict(self):
         '''Links with html.
             ----------
-            return dictionary like this {'link':'html',...}
+            return dictionary like this {'link': 'html',...}
         '''
         links = self.no_links_in_db()
         l = [[link, urllib.urlopen(link).read()] for link in links]
@@ -112,12 +112,12 @@ class HTMLcollector(object):
         return l
 
 
-class CheckWordInMySQL(object):
-    '''Class checking if word is in authoritative lists (MySQL).
+class CheckWordInPostgreSQL(object):
+    '''Class checking if words are in authoritative lists (PostgreSQL).
         ----------
         Attribute:
             dic (dict) - the dictionary of words and their repeats
-                        example: {'someword1':12, 'someword2':3}
+                        example: {'someword1': 12, 'someword2': 3}
     '''
     
     def __init__(self, dic):
@@ -182,10 +182,10 @@ class CheckWordInMySQL(object):
     def words_type_repeats(self):
         '''
             return dictionary {
-                    'sum_terms':number,
-                    'sum_names':number,
-                    'sum_cities':number,
-                    'sum_units':number
+                    'sum_terms': number,
+                    'sum_names': number,
+                    'sum_cities': number,
+                    'sum_units': number
                     }
         '''
         terms = 0
@@ -200,20 +200,20 @@ class CheckWordInMySQL(object):
             elif self.if_unit(word): units += self.dic[word]
         
         auth_words = {
-                    'sum_terms':terms,
-                    'sum_names':names,
-                    'sum_cities':cities,
-                    'sum_units':units
+                    'sum_terms': terms,
+                    'sum_names': names,
+                    'sum_cities': cities,
+                    'sum_units': units
                     }
         return auth_words
 
 
 class CheckWordInRedis(object):
-    '''Class checking if word is in authoritative list (Redis).
+    '''Class checking if words are in authoritative list (Redis).
         ----------
         Attribute:
             dic (dict) - the dictionary of words and their repeats
-                        example: {'someword1':12, 'someword2':3}
+                        example: {'someword1': 12, 'someword2': 3}
     '''
     
     def __init__(self, dic):
@@ -222,13 +222,16 @@ class CheckWordInRedis(object):
     def words_type_repeats(self):
         '''
             return dictionary {
-                    'sum_terms':number,
-                    'sum_names':number,
-                    'sum_cities':number,
-                    'sum_units':number
+                    'sum_terms': number,
+                    'sum_names': number,
+                    'sum_cities': number,
+                    'sum_units': number
                     }
         '''
-        r = eval(settings.REDIS_CONNECTION)
+        host = settings.REDIS_CONNECTION['host']
+        port = settings.REDIS_CONNECTION['port']
+        db = settings.REDIS_CONNECTION['db']
+        r = redis.StrictRedis(host=host, port=port, db=db)
         
         terms = 0
         names = 0
@@ -243,10 +246,10 @@ class CheckWordInRedis(object):
             elif word_type == 'city': cities += self.dic[word]
         
         auth_words = {
-                    'sum_terms':terms,
-                    'sum_names':names,
-                    'sum_cities':cities,
-                    'sum_units':units
+                    'sum_terms': terms,
+                    'sum_names': names,
+                    'sum_cities': cities,
+                    'sum_units': units
                     }
         return auth_words
 
@@ -255,10 +258,12 @@ class CollectionCharacteristics(object):
     '''Class that collecting characteristics of html.
         ----------
         Attribute:
+                link (str) - link
                 html (str) - html to get its characteristics
     '''
     
-    def __init__(self, html):
+    def __init__(self,link, html):
+        self.link = link
         self.html = html
     
     def extract_title(self):
@@ -269,7 +274,7 @@ class CollectionCharacteristics(object):
         try:
             soup = BeautifulSoup(self.html)
             title = soup.html.head.title.string
-        except: title="Error"
+        except: title = self.link
         return title
     
     def extract_text(self):
@@ -292,7 +297,7 @@ class CollectionCharacteristics(object):
             Attribute:
                 text (str) - the text to be scanned
             ----------
-            return dictionary like this {'someword1':12,'someword2':3}
+            return dictionary like this {'someword1': 12,'someword2': 3}
         '''
         words = {}
         garb = '\t\n\x0b\x0c\r !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"\''
@@ -309,10 +314,10 @@ class CollectionCharacteristics(object):
             Attribute:
                 text (str) - the text to be scanned
             ----------
-            return dictionary like this {'percent':number}
+            return dictionary like this {'percent': number}
         '''
         p = text.count('%')
-        perc = {'sum_percent':p}
+        perc = {'sum_percent': p}
         return perc
     
     def sum_of_words(self, dic):
@@ -320,25 +325,26 @@ class CollectionCharacteristics(object):
             ----------
             Attribute:
                 dic (dict) - the dictionary of words and their repeats
-                        example: {'word1':12, 'word2':3}
+                        example: {'word1': 12, 'word2': 3}
             ----------
-            return dictionary like this {'number_of_words':number}
+            return dictionary like this {'number_of_words': number}
         '''
-        n = {'sum_words':sum(dic.values())}
+        n = {'sum_words': sum(dic.values())}
         return n
     
     def authoritative_characteristics(self):
         '''Authoritative Characteristics.
             ----------
             return dictionary {
-                                'sum_terms':number,
-                                'sum_names':number,
-                                'sum_cities':number,
-                                'sum_units':number,
-                                'number_of_words':number
-                                'sum_unique_words':number
-                                'percent':number
-                                'add_time':number
+                                'sum_terms': number,
+                                'sum_names': number,
+                                'sum_cities': number,
+                                'sum_units': number,
+                                'number_of_words': number,
+                                'sum_unique_words': number,
+                                'percent': number,
+                                'add_time': number,
+                                'title': str,
                                 }
         '''
         text = self.extract_text()
@@ -350,9 +356,9 @@ class CollectionCharacteristics(object):
         charact.update(words_type.words_type_repeats())
         charact.update(self.percent(text))
         charact.update(self.sum_of_words(voc))
-        charact.update({'sum_unique_words':len(voc)})
-        charact.update({'add_time':int(time.time())})
-        #charact.update({'title':self.extract_title(html)})
+        charact.update({'sum_unique_words': len(voc)})
+        charact.update({'add_time': int(time.time())})
+        charact.update({'title': self.extract_title()})
         return charact
 
 
@@ -360,7 +366,7 @@ class WorkLinkDB(object):
     '''Class to save and get characteristics from DB.
         ----------
         Attribute:
-            link (str) - link to save or get characteristics from DB
+            link (str) - link to save or get its characteristics from DB
     '''
     
     def __init__(self, link):
@@ -374,6 +380,7 @@ class WorkLinkDB(object):
         '''
         p = Links(
             link = self.link,
+            title = dic['title'],
             add_time = dic['add_time'],
             sum_words = dic['sum_words'],
             sum_terms = dic['sum_terms'],
@@ -455,7 +462,7 @@ class AuthoritativeResults(object):
     def set_place(self, dic):
         '''
             Attribute:
-                dic (dict) - the dictionary like this {link:(scores, characteristics)}
+                dic (dict) - the dictionary like this {link: (scores, characteristics)}
             ----------
             return list like this [(link,(scores,{characteristics})), (...]
                             where the first element has the highest scores
@@ -489,7 +496,10 @@ class AuthoritativeResults(object):
         
         for link in links_html_dic:
             # Get characteristics
-            instance_ColChar = CollectionCharacteristics(links_html_dic[link])
+            instance_ColChar = CollectionCharacteristics(
+                                                    link=link,
+                                                    html=links_html_dic[link]
+                                                    )
             char_dic = instance_ColChar.authoritative_characteristics()
             
             # Save characteristics to database
@@ -508,8 +518,8 @@ class AuthoritativeResults(object):
             scores = instance_AuthorityCalculation.total_authority_scores()
             
             # Adds 'scores' to the dictionary of characteristics
-            char_dic.update({'scores':scores})
-            link_score.update({link:(scores, char_dic)})
+            char_dic.update({'scores': scores})
+            link_score.update({link: (scores, char_dic)})
         
         # Gets the list sorted by scores
         scores_list = self.set_place(link_score)

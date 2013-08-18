@@ -1,7 +1,7 @@
 <ul class="ulResults">
-    {% for link, scores, sum_words, sum_unique_words, sum_terms in list_d %}
+    {% for link, title, scores, sum_words, sum_unique_words, sum_terms in list_d %}
         <li class="liResults">
-            <h3 class="hResults"><a href="{{ link }}" target="_blank">{{ link }}</a></h3>
+            <h3 class="hResults"><a href="{{ link }}" target="_blank">{{ title }}</a></h3>
             <p class="pResults">
                 <span class="charKey">scores: </span><span class="charValue">{{ scores }}</span>,
                 <span class="charKey">sum words: </span><span class="charValue">{{ sum_words }}</span>,
