@@ -2,3 +2,5 @@
 *.gif
 *.jpg
 *.log
+manage.py~
+.gitignore~
