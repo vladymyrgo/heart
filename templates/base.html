@@ -15,8 +15,9 @@
                 $("#heart_form").submit(function(f) {
                     f.preventDefault();
                     $("#load_gif").show()
-                    var uq = $("#input").val();
-                    $.get("/result/", {q:uq}, function(data) {
+                    var usr_req = $('input[name=user_request]').val();
+                    var req_kind = $('input[name=response_kind]:checked').val();
+                    $.get("/result/", {q:usr_req, k:req_kind}, function(data) {
                         $("#load_gif").hide()
                         $("#results").empty().append(data).show("drop", 700);
                     });
@@ -30,8 +31,12 @@
     <body>
         <div class="divForm">
             <form id="heart_form">
-            <input type="text" id="input" autofocus>
-            <!--<input type="submit" value="search">-->
+                <input type="text" name="user_request" id="input" autofocus>
+                <p>
+                    <input type="radio" name="response_kind" value="wait" checked>Wait in browser<br>
+                    <input type="radio" name="response_kind" value="create">Create file (development)
+                </p>
+                <!--<input type="submit" value="search">-->
             </form>
         </div>
         <div id="results"></div>

@@ -1,5 +1,8 @@
 # Django settings for heart project.
 
+import djcelery
+djcelery.setup_loader()
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -21,11 +24,15 @@ DATABASES = {
     }
 }
 
+# For heart.py
 REDIS_CONNECTION = {
     'host': 'localhost',
     'port': 6379,
     'db': 1,
 }
+
+# Brokers setting for Celery
+BROKER_URL = 'redis://localhost:6379/2'
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -74,7 +81,7 @@ STATIC_ROOT = ''
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-STATICFILES_DIRS = ('/media/files/documents/www/myproject/heart/templates',
+STATICFILES_DIRS = ('/media/files/documents/www/myproject/heart/static',
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -99,8 +106,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
-    
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'middleware.timer.TotalTime',
 #    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -133,8 +139,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'debug_toolbar',
+#    'debug_toolbar',
     'south',
+    'djcelery',
     'search',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',

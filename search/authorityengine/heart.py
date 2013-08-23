@@ -2,9 +2,9 @@
 
 import urllib
 import time
-from bs4 import BeautifulSoup
 import redis
 from django.conf import settings
+from bs4 import BeautifulSoup
 from ..models import Links, Terms, Names, Cities, Units
 
 class LinksCollector(object):
